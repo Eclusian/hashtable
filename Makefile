@@ -1,24 +1,54 @@
 
 CC=gcc
-CFLAGS=-Wall -Werror -Wextra
+CFLAGS=-Iinclude -Wall -Werror -Wextra $(USERFLAGS)
 
+SRC_DIR=src/
+INCLUDE_DIR=include/
+TEST_DIR=test/
+BUILD_DIR=build/
+INSTALL_LIB_DIR=/usr/lib/
+INSTALL_INCLUDE_DIR=/usr/include/
+
+VPATH=$(SRC_DIR):$(INCLUDE_DIR):$(TEST_DIR):$(BUILD_DIR)
+
+INSTALL_FILES=$(LIB_DIR)libhashtable.a $(INSTALL_INCLUDE_DIR)hashtable.h
+
+TESTSRCS=$(shell ls test | grep '.c$$')
+TMP=$(TESTSRCS:.c= )
+TESTTARGETS=$(foreach item,$(TMP),build/$(item))
+
+.PHONY: all
+.PHONY: install
+.PHONY: install_libs
+.PHONY: install_includes
+.PHONY: uninstall
+.PHONY: clean
 
 all: libhashtable.a
 
-install: libhashtable.a
-	cp libhashtable.a /usr/lib/libhashtable.a
-	cp hashtable.h /usr/include/hashtable.h
+install: install_libs install_includes
+
+install_libs: libhashtable.a
+	cp -t $(INSTALL_LIB_DIR) $^
+
+install_includes: hashtable.h
+	cp -t $(INSTALL_INCLUDE_DIR) $^
 
 uninstall:
-	rm -f /usr/lib/libhashtable.a /usr/include/hashtable.h
+	rm -f $(INSTALL_FILES)
 
-libhashtable.a: hashtable.o
-	ar ruv libhashtable.a hashtable.o
-	ranlib libhashtable.a
+build/libhashtable.a: build/hashtable.o
+	ar ruv $@ $^
+	ranlib $@
 
-hashtable.o: 
-	$(CC) $(CFLAGS) hashtable.c -c -o hashtable.o
+build/hashtable.o: hashtable.c hashtable.h
+	$(CC) $(CFLAGS) $< -c -o $@
 
 clean:
-	rm -f libhashtable.a hashtable.o
+	rm -rf build/*
+
+# Tests
+
+$(TESTTARGETS): build/%: %.c build/libhashtable.a
+	$(CC) $(CFLAGS) $< -Lbuild -lhashtable -o $@
 
