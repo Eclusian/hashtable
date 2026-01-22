@@ -24,7 +24,7 @@ TESTTARGETS=$(foreach item,$(TMP),build/$(item))
 .PHONY: uninstall
 .PHONY: clean
 
-all: libhashtable.a
+all: libhashtable.a $(TESTTARGETS)
 
 install: install_libs install_includes
 
