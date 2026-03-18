@@ -11,7 +11,7 @@ INSTALL_INCLUDE_DIR=/usr/include/
 
 VPATH=$(SRC_DIR):$(INCLUDE_DIR):$(TEST_DIR):$(BUILD_DIR)
 
-INSTALL_FILES=$(LIB_DIR)libhashtable.a $(INSTALL_INCLUDE_DIR)hashtable.h
+INSTALL_FILES=$(INSTALL_LIB_DIR)libhashtable.a $(INSTALL_INCLUDE_DIR)hashtable.h
 
 TESTSRCS=$(shell ls test | grep '.c$$')
 TMP=$(TESTSRCS:.c= )
