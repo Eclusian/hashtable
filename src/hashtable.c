@@ -30,7 +30,7 @@ struct hashtable_t
 	/* Current number of entries in the table. */
 	size_t nitems;
 	/* Place to store padded keys during hashing. */
-	void * buffer;
+	void *buffer;
 	/* The lookup table. */
 	struct entry_t **lookuptable;
 };
@@ -369,7 +369,7 @@ int ht_put(const void *key, void *value, hashtable * restrict hthandle)
 {
 	struct hashtable_t *ht;
 	size_t keysize;
-	struct entry_t ** dst_bucket;
+	struct entry_t **dst_bucket;
 	int err;
 	float load_factor;
 	if(hthandle == NULL || (ht = *hthandle) == NULL || key == NULL)
@@ -392,7 +392,7 @@ int ht_put(const void *key, void *value, hashtable * restrict hthandle)
 }
 
 /* Return a value from its key. */
-void * ht_get(const void * key, hashtable * restrict hthandle)
+void * ht_get(const void *key, hashtable * restrict hthandle)
 {
 	struct hashtable_t *ht;
 	if(hthandle == NULL || (ht = *hthandle) == NULL || key == NULL)
@@ -400,8 +400,8 @@ void * ht_get(const void * key, hashtable * restrict hthandle)
 
 	digest_key(&key, &ht->keysize, ht);
 
-	struct entry_t ** bucket = find_bucket(key, ht->keysize, ht);
-	struct entry_t * entry = get_entry_from_bucket(bucket, key, ht->keysize);
+	struct entry_t **bucket = find_bucket(key, ht->keysize, ht);
+	struct entry_t *entry = get_entry_from_bucket(bucket, key, ht->keysize);
 	if(entry == NULL) return NULL;
 	else return entry->value;
 }
@@ -410,8 +410,8 @@ void * ht_get(const void * key, hashtable * restrict hthandle)
 int ht_contains(const void * key, hashtable * restrict hthandle)
 {
 	struct hashtable_t *ht;
-	struct entry_t ** bucket;
-	struct entry_t * entry;
+	struct entry_t **bucket;
+	struct entry_t *entry;
 	if(hthandle == NULL || (ht = *hthandle) == NULL || key == NULL)
 		return 0;
 
@@ -431,7 +431,7 @@ void * ht_remove(const void *key, hashtable * restrict hthandle)
 	struct hashtable_t *ht;
 	void *value = NULL;
 	int found;
-	struct entry_t ** dst;
+	struct entry_t **dst;
 	if(hthandle == NULL || (ht = *hthandle) == NULL || key == NULL)
 		return NULL;
 
@@ -450,7 +450,7 @@ void * ht_remove(const void *key, hashtable * restrict hthandle)
  */
 void * ht_values(hashtable * hthandle, size_t * len)
 {
-	struct hashtable_t * ht;
+	struct hashtable_t *ht;
 	void **arr;
 	void **vptr;
 	if(hthandle == NULL || (ht = *hthandle) == NULL || len == NULL)
@@ -474,9 +474,9 @@ void * ht_values(hashtable * hthandle, size_t * len)
 }
 
 /* Return true if the table is empty, false otherwise. */
-int ht_isempty(hashtable * hthandle)
+int ht_isempty(hashtable *hthandle)
 {
-	struct hashtable_t * ht;
+	struct hashtable_t *ht;
 	if(hthandle == NULL || (ht = *hthandle) == NULL)
 		return 1;
 
@@ -484,9 +484,9 @@ int ht_isempty(hashtable * hthandle)
 }
 
 /* Return the number of entries currently held by @hthandle. */
-size_t ht_nitems(hashtable * hthandle)
+size_t ht_nitems(hashtable *hthandle)
 {
-	struct hashtable_t * ht;
+	struct hashtable_t *ht;
 	if(hthandle == NULL || (ht = *hthandle) == NULL)
 		return 0;
 
@@ -498,7 +498,7 @@ size_t ht_nitems(hashtable * hthandle)
  * This does not call free() on entries' value pointers. If this is the desired
  * behavior, see destroy_hashtable().
  */
-void free_hashtable(hashtable * hthandle)
+void free_hashtable(hashtable *hthandle)
 {
 	if(hthandle == NULL) return;
 	free_hashtable__(*hthandle);
@@ -512,7 +512,7 @@ void free_hashtable(hashtable * hthandle)
  * Do not use this function if your hashtable contains ANY pointers to
  * automatic variables!
  */
-void destroy_hashtable(hashtable * hthandle)
+void destroy_hashtable(hashtable *hthandle)
 {
 	if(hthandle == NULL) return;
 	destroy_hashtable__(*hthandle);

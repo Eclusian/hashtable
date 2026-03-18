@@ -12,7 +12,7 @@
 
 #include <stdlib.h>
 
-typedef struct hashtable_t * hashtable;
+typedef struct hashtable_t *hashtable;
 
 enum hashtable_flags
 {
@@ -46,40 +46,40 @@ hashtable * new_hashtable(size_t keysize, int flags);
  * If @key already exists, the corresponding entry is overwritten.
  * Returns 0 on success, 1 on failure.
  */
-int ht_put(const void * key, void * value, hashtable * restrict ht);
+int ht_put(const void *key, void *value, hashtable * restrict ht);
 
 /*
  * Retrieves a pointer to the value mapped to by @key.
  * If @key is invalid, NULL is returned.
  */
-void * ht_get(const void * key, hashtable * restrict ht);
+void * ht_get(const void *key, hashtable * restrict ht);
 
 /* Returns true if @ht contains the given @key, false otherwise. */
-int ht_contains(const void * key, hashtable * restrict ht);
+int ht_contains(const void *key, hashtable * restrict ht);
 
 /*
  * Removes an entry from @ht.
  * If @key is invalid or no matching entry is found, NULL is returned.
  */
-void * ht_remove(const void * key, hashtable * restrict ht);
+void * ht_remove(const void *key, hashtable * restrict ht);
 
 /*
  * Removes an entry from @ht AND calls free() on the entry's value.
  */
-void ht_destroy(hashtable * ht, const void * key);
+void ht_destroy(hashtable *ht, const void *key);
 
 /*
  * Returns a malloc'd array of all values in @ht, and sets @len to the
  * length of that array.
  * Sets @len to 0 and return NULL if @ht is empty.
  */
-void * ht_values(hashtable * ht, size_t * len);
+void * ht_values(hashtable *ht, size_t *len);
 
 /* Returns true if @ht contains no entries, false otherwise. */
-int ht_isempty(hashtable * ht);
+int ht_isempty(hashtable *ht);
 
 /* Returns the number of elements currently stored in @ht. */
-size_t ht_nitems(hashtable * ht);
+size_t ht_nitems(hashtable *ht);
 
 /*
  * Frees all memory utilized by @ht and stored keys.
@@ -87,13 +87,13 @@ size_t ht_nitems(hashtable * ht);
  * those entries are NOT freed by this function. Values must be
  * tracked down and freed by the user, for example with ht_purge().
  */
-void free_hashtable(hashtable * ht);
+void free_hashtable(hashtable *ht);
 
 /*
  * Has the same effect as calling ht_destroy() on every entry in @ht, then
  * calling free_hashtable() on @ht.
  */
-void destroy_hashtable(hashtable * ht);
+void destroy_hashtable(hashtable *ht);
 
 #endif /* HASHTABLE_H */
 
