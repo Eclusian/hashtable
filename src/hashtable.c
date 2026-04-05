@@ -1,8 +1,4 @@
-///
-/// hashtable.c
-///
-/// Implementation of hashtable.h.
-///
+/* hashtable.c */
 
 #include "hashtable.h"
 
@@ -40,15 +36,13 @@ struct hashtable_t
 /*
  * Since they're static, all bucket functions are assumed to be provided valid
  * arguments. Sanitation/validation/verification/authorization/whatever should
- * occur in ht methods before calling bucket_XXXXX().
+ * occur in user-exposed ht methods before calling bucket functions.
  */
 
 /*
  * Create a new entry with the given @key and @value.
  */
-static struct entry_t * new_entry(const void *key,
-				void *value,
-				size_t keysize)
+static struct entry_t *new_entry(const void *key, void *value, size_t keysize)
 {
 	struct entry_t *entry = malloc(sizeof(struct entry_t));
 	entry->key = malloc(keysize);
@@ -81,7 +75,7 @@ static void free_bucket(struct entry_t *entry)
 }
 
 /*
- * Frees every entry in a bucket, as well as that entry's value pointer.
+ * Frees every entry in a bucket, as well as the entries' value pointer.
  */
 static void destroy_bucket(struct entry_t *entry)
 {
@@ -100,15 +94,13 @@ static void destroy_bucket(struct entry_t *entry)
  * Note that this function will never check the first entry of a bucket for
  * a match, since there is no previous entry that can point to it.
  */
-static struct entry_t * get_before_entry_from_bucket(struct entry_t *entry,
+static struct entry_t *get_before_entry_from_bucket(struct entry_t *entry,
 							const void *key,
 							size_t keysize)
 {
 	while(entry->next != NULL)
-		if(!memcmp(entry->next->key, key, keysize))
-			return entry;
-		else
-			entry = entry->next;
+		if(!memcmp(entry->next->key, key, keysize)) return entry;
+		else entry = entry->next;
 	return entry;
 }
 
@@ -116,25 +108,23 @@ static struct entry_t * get_before_entry_from_bucket(struct entry_t *entry,
  * Return a pointer to an entry that matches key, or NULL if key does not
  * exist.
  */
-static struct entry_t * get_entry_from_bucket(struct entry_t **bucket,
-					const void *key,
-					size_t keysize)
+static struct entry_t *get_entry_from_bucket(struct entry_t **bucket,
+						const void *key,
+						size_t keysize)
 {
 	struct entry_t *entry = *bucket;
-	if(entry == NULL)
-		return NULL;
+	if(entry == NULL) return NULL;
 	do {
 		if(!memcmp(entry->key, key, keysize)) return entry;
 		entry = entry->next;
 	} while(entry != NULL);
-
 	return NULL;
 }
 
 /*
  * @bucket - Reference to a bucket (beginning of a linked list of entry_t's)
  *
- * Evaluates the hash of @key and use it to index the hashtable.
+ * Evaluate the hash of @key and use it to index the hashtable.
  * If an entry is found with a matching key, overwrite its value.
  * If no such entry exists, create a new entry with the given key and value.
  * @ehandle must not be NULL, but *@ehandle may be NULL if @ehandle points to
@@ -145,10 +135,8 @@ static struct entry_t * get_entry_from_bucket(struct entry_t **bucket,
  * If no matching entry is found, but a new entry is created successfully,
  * 1 is returned.
  */
-static int add_entry_to_bucket(struct entry_t **bucket,
-			const void *key,
-			void *value,
-			size_t keysize)
+static int add_entry_to_bucket(struct entry_t **bucket, const void *key,
+				void *value, size_t keysize)
 {
 	struct entry_t *entry = *bucket;
 	struct entry_t *match = NULL;
@@ -157,20 +145,15 @@ static int add_entry_to_bucket(struct entry_t **bucket,
 		*bucket = new_entry(key, value, keysize);
 		return 1;
 	}
-
 	if(!memcmp(entry->key, key, keysize)) {
 		entry->value = value;
 		return 0;
 	}
-
 	match = get_before_entry_from_bucket(entry, key, keysize);
-	if(match->next == NULL)
-	{
+	if(match->next == NULL) {
 		match->next = new_entry(key, value, keysize);
 		return 1;
-	}
-	else
-	{
+	} else {
 		match->next->value = value;
 		return 0;
 	}
@@ -225,7 +208,7 @@ static int remove_entry_from_bucket(struct entry_t **bucket,
 static size_t ht_hash(const void *key, size_t keysize)
 {
 	size_t hash = 5381;
-	const unsigned char * str = key;
+	const unsigned char *str = key;
 	for(size_t i=0; (i<keysize); i++)
 		hash = ((hash << 5) + hash) + str[i]; /* hash * 33 + c */
 
@@ -233,9 +216,8 @@ static size_t ht_hash(const void *key, size_t keysize)
 }
 
 /* Find the bucket in the lookup table using the hash of @key. */
-static struct entry_t ** find_bucket(const void *key,
-					size_t keysize,
-					struct hashtable_t * restrict ht)
+static struct entry_t **find_bucket(const void *key, size_t keysize,
+					struct hashtable_t *restrict ht)
 {
 	size_t idx = ht_hash(key, keysize) % ht->tablelen;
 	return &(ht->lookuptable[idx]);
@@ -253,16 +235,12 @@ static struct entry_t ** find_bucket(const void *key,
  * with.
  * e.g. padding, updating keysize, etc
  */
-static void digest_key(const void ** restrict key,
-			size_t *keysize,
+static void digest_key(const void **restrict key, size_t *keysize,
 			struct hashtable_t *ht)
 {
-	if(ht->flags & HT_VSIZE)
-	{
+	if(ht->flags & HT_VSIZE) {
 		*keysize = 1 + strlen(*key);
-	}
-	else if(ht->flags & HT_PAD)
-	{
+	} else if(ht->flags & HT_PAD) {
 		memset(ht->buffer, '\0', ht->keysize);
 		*key = strcpy(ht->buffer, *key);
 	}
@@ -271,7 +249,7 @@ static void digest_key(const void ** restrict key,
 /*
  * Create a new hashtable object.
  */
-static struct hashtable_t * new_hashtable__(size_t keysize, int flags,
+static struct hashtable_t *new_hashtable__(size_t keysize, int flags,
 						size_t tablelen)
 {
 	struct hashtable_t *ht;
@@ -325,7 +303,7 @@ static void destroy_hashtable__(struct hashtable_t *ht)
  * The user receives a handle to the hashtable rather than a direct pointer,
  * in order to hide realloc-related implementation details.
  */
-hashtable * new_hashtable(size_t keysize, int flags)
+hashtable *new_hashtable(size_t keysize, int flags)
 {
 	hashtable *hthandle = malloc(sizeof(hashtable *));
 	*hthandle = new_hashtable__(keysize, flags, INITIAL_TAB_LEN);
@@ -336,19 +314,19 @@ hashtable * new_hashtable(size_t keysize, int flags)
  * Rehash @ht. That is, rebuild @ht with a longer tablelen, and free the
  * original @ht while returning the new hashtable.
  */
-static struct hashtable_t * rehash(struct hashtable_t *ht)
+static struct hashtable_t *rehash(struct hashtable_t *ht)
 {
-	if(2*ht->tablelen <= ht->tablelen)
-		return ht;
-
-	struct hashtable_t *new_ht = new_hashtable__(ht->keysize, ht->flags,
-							2*ht->tablelen);
+	struct hashtable_t *new_ht;
 	struct entry_t *entry;
+	void *key, *value;
+	if(2*ht->tablelen <= ht->tablelen) return ht;
+
+	new_ht = new_hashtable__(ht->keysize, ht->flags, 2*ht->tablelen);
 	for(size_t i=0; i<ht->tablelen; i++) {
 		entry = ht->lookuptable[i];
 		while(entry != NULL) {
-			void *key = entry->key;
-			void *value = entry->value;
+			key = entry->key;
+			value = entry->value;
 			if(ht_put(key, value, &new_ht) != 0) goto rehash_error;
 			entry = entry->next;
 		}
@@ -365,13 +343,13 @@ rehash_error:
  * Add a new entry to the table, and rehash if necessary.
  * Return 0 on success, 1 on failure.
  */
-int ht_put(const void *key, void *value, hashtable * restrict hthandle)
+int ht_put(const void *key, void *value, hashtable *restrict hthandle)
 {
 	struct hashtable_t *ht;
-	size_t keysize;
 	struct entry_t **dst_bucket;
-	int err;
+	size_t keysize;
 	float load_factor;
+	int err;
 	if(hthandle == NULL || (ht = *hthandle) == NULL || key == NULL)
 		return 1;
 
@@ -379,10 +357,8 @@ int ht_put(const void *key, void *value, hashtable * restrict hthandle)
 	digest_key(&key, &keysize, ht);
 	dst_bucket = find_bucket(key, keysize, ht);
 	err = add_entry_to_bucket(dst_bucket, key, value, keysize);
-	if(err < 0)
-		return 1;
-	else
-		ht->nitems++;
+	if(err < 0) return 1;
+	else ht->nitems++;
 
 	load_factor = (float)(ht->nitems) / (ht->tablelen);
 	if(load_factor > LOAD_FACTOR_LIMIT)
@@ -392,22 +368,23 @@ int ht_put(const void *key, void *value, hashtable * restrict hthandle)
 }
 
 /* Return a value from its key. */
-void * ht_get(const void *key, hashtable * restrict hthandle)
+void *ht_get(const void *key, hashtable *restrict hthandle)
 {
 	struct hashtable_t *ht;
+	struct entry_t **bucket, *entry;
 	if(hthandle == NULL || (ht = *hthandle) == NULL || key == NULL)
 		return NULL;
 
 	digest_key(&key, &ht->keysize, ht);
 
-	struct entry_t **bucket = find_bucket(key, ht->keysize, ht);
-	struct entry_t *entry = get_entry_from_bucket(bucket, key, ht->keysize);
+	bucket = find_bucket(key, ht->keysize, ht);
+	entry = get_entry_from_bucket(bucket, key, ht->keysize);
 	if(entry == NULL) return NULL;
 	else return entry->value;
 }
 
 /* Returns true if @ht contains the given @key, false otherwise. */
-int ht_contains(const void * key, hashtable * restrict hthandle)
+int ht_contains(const void *key, hashtable *restrict hthandle)
 {
 	struct hashtable_t *ht;
 	struct entry_t **bucket;
@@ -426,7 +403,7 @@ int ht_contains(const void * key, hashtable * restrict hthandle)
  * Remove a key, value pair from the table.
  * If @key is invalid or not found, return NULL.
  */
-void * ht_remove(const void *key, hashtable * restrict hthandle)
+void *ht_remove(const void *key, hashtable *restrict hthandle)
 {
 	struct hashtable_t *ht;
 	void *value = NULL;
@@ -448,11 +425,11 @@ void * ht_remove(const void *key, hashtable * restrict hthandle)
  * If @len is NULL, this function has no effect and returns NULL.
  * If the hashtable is empty, this function may return NULL.
  */
-void * ht_values(hashtable * hthandle, size_t * len)
+void *ht_values(hashtable *hthandle, size_t *len)
 {
 	struct hashtable_t *ht;
-	void **arr;
-	void **vptr;
+	struct entry_t *entry;
+	void **arr, **vptr;
 	if(hthandle == NULL || (ht = *hthandle) == NULL || len == NULL)
 		return NULL;
 
@@ -461,11 +438,9 @@ void * ht_values(hashtable * hthandle, size_t * len)
 
 	arr = calloc(ht->nitems, sizeof(void *));
 	vptr = arr;
-	for(size_t i=0; i<ht->tablelen; i++)
-	{
-		struct entry_t *entry = ht->lookuptable[i];
-		while(entry != NULL)
-		{
+	for(size_t i=0; i<ht->tablelen; i++) {
+		entry = ht->lookuptable[i];
+		while(entry != NULL) {
 			*vptr++ = entry->value;
 			entry = entry->next;
 		}
@@ -477,9 +452,7 @@ void * ht_values(hashtable * hthandle, size_t * len)
 int ht_isempty(hashtable *hthandle)
 {
 	struct hashtable_t *ht;
-	if(hthandle == NULL || (ht = *hthandle) == NULL)
-		return 1;
-
+	if(hthandle == NULL || (ht = *hthandle) == NULL) return 1;
 	return !(ht->nitems);
 }
 
@@ -487,9 +460,7 @@ int ht_isempty(hashtable *hthandle)
 size_t ht_nitems(hashtable *hthandle)
 {
 	struct hashtable_t *ht;
-	if(hthandle == NULL || (ht = *hthandle) == NULL)
-		return 0;
-
+	if(hthandle == NULL || (ht = *hthandle) == NULL) return 0;
 	return ht->nitems;
 }
 
