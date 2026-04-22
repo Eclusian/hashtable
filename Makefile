@@ -38,10 +38,12 @@ uninstall:
 	rm -f $(INSTALL_FILES)
 
 build/libhashtable.a: build/hashtable.o
+	mkdir -p build
 	ar ruv $@ $^
 	ranlib $@
 
 build/hashtable.o: hashtable.c hashtable.h
+	mkdir -p build
 	$(CC) $(CFLAGS) $< -c -o $@
 
 clean:
@@ -51,5 +53,6 @@ clean:
 # Tests
 
 $(TESTTARGETS): build/%: %.c build/libhashtable.a
+	mkdir -p build
 	$(CC) $(CFLAGS) $< -Lbuild -lhashtable -o $@
 
