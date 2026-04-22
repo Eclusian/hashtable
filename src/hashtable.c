@@ -145,6 +145,19 @@ static int add_entry_to_bucket(struct entry_t **bucket, const void *key,
 		*bucket = new_entry(key, value, keysize);
 		return 1;
 	}
+	/*
+	 * Justification for using memcmp():
+	 * If HT_VSIZE is unset:
+	 *   both entry->key and key are guaranteed to have keysize, no issue.
+	 * If HT_VSIZE is set:
+	 *   entry->key might be shorter (null-terminated) than keysize:
+	 *     - key does not have a '\0' before the keysize'th byte, but
+	 *       entry->key does, so they will be reported as different, as
+	 *       expected.
+	 *   entry->key might be longer than keysize:
+	 *     - entry->key will not match key because comparison will fail
+	 *       on the null byte.
+	 */
 	if(!memcmp(entry->key, key, keysize)) {
 		entry->value = value;
 		return 0;
