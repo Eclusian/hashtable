@@ -36,7 +36,7 @@ enum hashtable_flags
  * If HT_VSIZE is set in @flags, then HT_PAD and @keysize are ignored, and keys 
  * are hashed until encountering a null byte (useful for string keys).
  */
-hashtable * new_hashtable(size_t keysize, int flags);
+hashtable *new_hashtable(size_t keysize, int flags);
 
 /*
  * Put a new key, value pair into @ht.
@@ -46,22 +46,22 @@ hashtable * new_hashtable(size_t keysize, int flags);
  * If @key already exists, the corresponding entry is overwritten.
  * Returns 0 on success, 1 on failure.
  */
-int ht_put(const void *key, void *value, hashtable * restrict ht);
+int ht_put(const void *key, void *value, hashtable *restrict ht);
 
 /*
  * Retrieves a pointer to the value mapped to by @key.
  * If @key is invalid, NULL is returned.
  */
-void * ht_get(const void *key, hashtable * restrict ht);
+void *ht_get(const void *key, hashtable *restrict ht);
 
 /* Returns true if @ht contains the given @key, false otherwise. */
-int ht_contains(const void *key, hashtable * restrict ht);
+int ht_contains(const void *key, hashtable *restrict ht);
 
 /*
  * Removes an entry from @ht.
  * If @key is invalid or no matching entry is found, NULL is returned.
  */
-void * ht_remove(const void *key, hashtable * restrict ht);
+void *ht_remove(const void *key, hashtable *restrict ht);
 
 /*
  * Removes an entry from @ht AND calls free() on the entry's value.
@@ -73,7 +73,7 @@ void ht_destroy(hashtable *ht, const void *key);
  * length of that array.
  * Sets @len to 0 and return NULL if @ht is empty.
  */
-void * ht_values(hashtable *ht, size_t *len);
+void *ht_values(hashtable *ht, size_t *len);
 
 /* Returns true if @ht contains no entries, false otherwise. */
 int ht_isempty(hashtable *ht);
