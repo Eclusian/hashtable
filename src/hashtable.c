@@ -29,7 +29,20 @@ struct hashtable_t
 	void *buffer;
 	/* The lookup table. */
 	struct entry_t **lookuptable;
+	/*
+	 * Cached array of stored values to return from repeated calls to
+	 * ht_values(). Invalidated anytime the table is updated.
+	 */
+	void **valarr;
 };
+
+static void invalidate_valarr(struct hashtable_t *ht)
+{
+	if(ht->valarr != NULL) {
+		free(ht->valarr);
+		ht->valarr = NULL;
+	}
+}
 
 /* Bucket functions */
 
@@ -284,6 +297,7 @@ static struct hashtable_t *new_hashtable__(size_t keysize, int flags,
 	ht->keysize = keysize;
 	ht->tablelen = tablelen;
 	ht->lookuptable = calloc(tablelen, sizeof(*(ht->lookuptable)));
+	ht->valarr = NULL;
 	return ht;
 }
 
@@ -297,6 +311,7 @@ static void free_hashtable__(struct hashtable_t *ht)
 	if(ht == NULL) return;
 	if(!ht_isempty(&ht)) for(size_t i=0; i<ht->tablelen; i++)
 		free_bucket(ht->lookuptable[i]);
+	invalidate_valarr(ht);
 	free(ht->lookuptable);
 	free(ht->buffer);
 	free(ht);
@@ -307,6 +322,7 @@ static void destroy_hashtable__(struct hashtable_t *ht)
 	if(ht == NULL) return;
 	if(!ht_isempty(&ht)) for(size_t i=0; i<ht->tablelen; i++)
 		destroy_bucket(ht->lookuptable[i]);
+	invalidate_valarr(ht);
 	free(ht->lookuptable);
 	free(ht->buffer);
 	free(ht);
@@ -371,7 +387,8 @@ int ht_put(const void *key, void *value, hashtable *restrict hthandle)
 	dst_bucket = find_bucket(key, keysize, ht);
 	err = add_entry_to_bucket(dst_bucket, key, value, keysize);
 	if(err < 0) return 1;
-	else ht->nitems++;
+	ht->nitems++;
+	invalidate_valarr(ht);
 
 	load_factor = (float)(ht->nitems) / (ht->tablelen);
 	if(load_factor > LOAD_FACTOR_LIMIT)
@@ -429,28 +446,33 @@ void *ht_remove(const void *key, hashtable *restrict hthandle)
 	dst = find_bucket(key, ht->keysize, ht);
 	found = !remove_entry_from_bucket(dst, key, ht->keysize, &value);
 	if(found) ht->nitems--;
+	invalidate_valarr(ht);
 	return value;
 }
 
 
 /* 
- * Return a malloc'd array of the values of all the entries stored in @hthandle.
- * If @len is NULL, this function has no effect and returns NULL.
- * If the hashtable is empty, this function may return NULL.
+ * Return an array of the values of all the entries stored in @hthandle.
+ * This array must NOT be freed by the user!
+ * If @len is not NULL, the length of the returned array (equal to ht_nitems())
+ * is written to @len.
+ * If the hashtable is empty, return NULL. @len is set to 0 to indicate an
+ * empty array.
  */
 void *ht_values(hashtable *hthandle, size_t *len)
 {
 	struct hashtable_t *ht;
 	struct entry_t *entry;
-	void **arr, **vptr;
+	void **vptr;
 	if(hthandle == NULL || (ht = *hthandle) == NULL || len == NULL)
 		return NULL;
 
 	*len = ht->nitems;
 	if(*len == 0) return NULL;
+	if(ht->valarr != NULL) return ht->valarr;
 
-	arr = calloc(ht->nitems, sizeof(void *));
-	vptr = arr;
+	ht->valarr = calloc(ht->nitems, sizeof(void *));
+	vptr = ht->valarr;
 	for(size_t i=0; i<ht->tablelen; i++) {
 		entry = ht->lookuptable[i];
 		while(entry != NULL) {
@@ -458,7 +480,7 @@ void *ht_values(hashtable *hthandle, size_t *len)
 			entry = entry->next;
 		}
 	}
-	return arr;
+	return ht->valarr;
 }
 
 /* Return true if the table is empty, false otherwise. */

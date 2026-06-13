@@ -62,7 +62,6 @@ void print_hashtable(hashtable * ht)
 		printf("Entry:\n");
 		printf("\tname=%s; age=%d\n", p->name, p->age);
 	}
-	free(people);
 }
 
 

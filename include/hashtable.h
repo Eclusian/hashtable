@@ -69,9 +69,9 @@ void *ht_remove(const void *key, hashtable *restrict ht);
 void ht_destroy(hashtable *ht, const void *key);
 
 /*
- * Returns a malloc'd array of all values in @ht, and sets @len to the
- * length of that array.
- * Sets @len to 0 and return NULL if @ht is empty.
+ * Returns an array of all values in @ht, and sets @len to the length of that
+ * array. This array need not, and should not, be freed by the user.
+ * Sets @len to 0 and returns NULL if @ht is empty. @len may be NULL.
  */
 void *ht_values(hashtable *ht, size_t *len);
 
