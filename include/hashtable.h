@@ -85,7 +85,7 @@ size_t ht_nitems(hashtable *ht);
  * Frees all memory utilized by @ht and stored keys.
  * Hashtable entries are freed by this function, but values pointed to by
  * those entries are NOT freed by this function. Values must be
- * tracked down and freed by the user, for example with ht_purge().
+ * tracked down and freed by the user.
  */
 void free_hashtable(hashtable *ht);
 
