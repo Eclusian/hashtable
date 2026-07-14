@@ -47,7 +47,6 @@ build/hashtable.o: hashtable.c hashtable.h
 	$(CC) $(CFLAGS) $< -c -o $@
 
 clean:
-	# DON'T PARAMETERIZE THIS MORON
 	rm -rf build/*
 
 # Tests
