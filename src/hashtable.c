@@ -205,8 +205,7 @@ static int remove_entry_from_bucket(struct entry_t **bucket,
 	struct entry_t *match;
 	if(entry == NULL)
 		return 1;
-	if(!memcmp(entry->key, key, keysize))
-	{
+	if(!memcmp(entry->key, key, keysize)) {
 		if(valueref != NULL)
 			*valueref = entry->value;
 		*bucket = entry->next;
@@ -214,10 +213,9 @@ static int remove_entry_from_bucket(struct entry_t **bucket,
 		return 0;
 	}
 	match = get_before_entry_from_bucket(entry, key, keysize);
-	if(match->next == NULL)
+	if(match->next == NULL) {
 		return 1;
-	else
-	{
+	} else {
 		struct entry_t *tmp = match->next;
 		if(valueref != NULL)
 			*valueref = tmp->value;
